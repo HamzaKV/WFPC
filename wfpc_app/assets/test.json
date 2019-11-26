@@ -1,0 +1,16 @@
+{
+    "timestamp": "946702800",
+    "percipIntensity": "0",
+    "percipProbability": "0",
+    "temperature": "64.84",
+    "apparentTemp": "65",
+    "dewPoint": "60.1",
+    "humidity": "0.85",
+    "pressure": "1021.7",
+    "windSpeed": "1.33",
+    "windBearing": "73",
+    "cloudCover": "0.1",
+    "uvIndex": "0",
+    "visibility": "8.17",
+    "summary": "Clear"
+  }

@@ -1,4 +1,5 @@
 import math
+from scipy.integrate import quad
 
 def calculateDistance(lat1, long1, lat2, long2):#haversine formula
     r = 6371 * pow(10, 3)
@@ -13,6 +14,9 @@ def calculateDistance(lat1, long1, lat2, long2):#haversine formula
     x = (math.cos(theta1) * math.sin(theta2)) - (math.sin(theta1) * math.cos(theta2) * math.cos(deltaLambda))
     bearing = (math.atan2(y, x) + math.pi) % math.pi
     return distance, bearing
+
+def integrand(a, b):
+    return -1 * (a + b)
 
 #variables for forecasting
 windSpeedFuture1 = 0
@@ -117,6 +121,8 @@ dudx = (u2 - u1) / (deltax)
 dvdx = (v2 - v1) / (deltax)
 dudy = (u2 - u1) / (deltay)
 dvdy = (v2 - v1) / (deltay)
+# omega = quad(integrand(dudx, dvdy), pressure1, pressure2)
+omega = pressure2 - pressure1
 dudp = (u2 - u1) / (pressure2 - pressure1) if (pressure2 - pressure1) != 0.0 else 0.0
 dvdp = (v2 - v1) / (pressure2 - pressure1) if (pressure2 - pressure1) != 0.0 else 0.0
 dpdx = (pressure2 - pressure1) / (deltax)
@@ -127,7 +133,7 @@ dTdp = (temperature2 - temperature1) / (pressure2 - pressure1) if (pressure2 - p
 
 dudt = (-1 * u1 * dudx) - (v1 * dudy) - (dudp) + (f1 * v1) - ((1/density1) * dpdx)
 dvdt = (-1 * u1 * dvdx) - (v1 * dvdy) - (dvdp) + (f1 * u1) - ((1/density1) * dpdy)
-dTdt = (-1 * u1 * dTdx) - (v1 * dTdy) - (dTdp - ((R * temperature1) / (cp * pressure1)))
+dTdt = (-1 * u1 * dTdx) - (v1 * dTdy) - (omega * (dTdp - ((R * temperature1) / (cp * pressure1))))
 
 uForecasted = u1 + (dudt * (time2 - time1))
 vForecasted = v1 + (dvdt * (time2 - time1))
@@ -141,3 +147,4 @@ temperatureFuture1 = (tempForecasted * 9 / 5) - 459.67
 
 #results
 print(windSpeedFuture1, temperatureFuture1)
+#error = abs(experimental - actual)/actual * 100

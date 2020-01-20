@@ -50,9 +50,9 @@ clf = tree.DecisionTreeClassifier()
 clf = clf.fit(features, labels)
 
 #print decision tree
-from sklearn.externals.six import StringIO
-from IPython.display import Image
-import pydotplus
+# from sklearn.externals.six import StringIO
+# from IPython.display import Image
+# import pydotplus
 dot_data = StringIO()
 tree.export_graphviz(clf, 
                     out_file=dot_data,

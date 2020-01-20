@@ -13,6 +13,9 @@ fields = ['time', 'summary', 'precipIntensity', 'precipProbability',
             'humidity', 'pressure', 'windSpeed', 'windBearing', 
             'cloudCover', 'uvIndex', 'visibility', 'nearestStormDistance']
 COST = 995
+APIKEY = ''
+with open('api') as api_file:
+    APIKEY = api_file.readline()
 
 wait_icon = "|"
 
@@ -28,7 +31,8 @@ while True:
         wait_icon="|"
     #Get data from website
     values = []
-    req='https://api.darksky.net/forecast/b96bb9a5ac2fd6d4dbafafa064810821/25.761681,%20-80.191788,'+str(timestamp+(86400*(i)))
+    #Locations: Miami,FL:25.761681,-80.191788 | Miami Beach,FL: 25.8103146,-80.1751609 | N Park Rd,Hollywood,FL: 26.0331192,-80.1774954
+    req='https://api.darksky.net/forecast/'+APIKEY+'/25.8103146,-80.1751609,'+str(timestamp+(86400*(i)))
     response = requests.get(req)
     if response.status_code == 200:
         net_tries = 0
@@ -46,7 +50,7 @@ while True:
         else:
             continue
     #Dump data in csv file
-    with open('weather_data.csv', 'a') as csvFile:
+    with open('weather_data_miami_beach.csv', 'a') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(values)
     csvFile.close()

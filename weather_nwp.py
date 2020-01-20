@@ -127,7 +127,7 @@ dTdp = (temperature2 - temperature1) / (pressure2 - pressure1) if (pressure2 - p
 
 dudt = (-1 * u1 * dudx) - (v1 * dudy) - (dudp) + (f1 * v1) - ((1/density1) * dpdx)
 dvdt = (-1 * u1 * dvdx) - (v1 * dvdy) - (dvdp) + (f1 * u1) - ((1/density1) * dpdy)
-dTdt = (-1 * u1 * dTdx) - (v1 * dTdy) - (dTdp - ((R * temperature1) / (cp * pressure1))) #cp is missing
+dTdt = (-1 * u1 * dTdx) - (v1 * dTdy) - (dTdp - ((R * temperature1) / (cp * pressure1)))
 
 uForecasted = u1 + (dudt * (time2 - time1))
 vForecasted = v1 + (dvdt * (time2 - time1))

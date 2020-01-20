@@ -152,6 +152,7 @@ def calculateNWP(time1, latitude1, longitude1, windSpeed1, windBearing1, tempera
     dvdx = (v2 - v1) / (deltax)
     dudy = (u2 - u1) / (deltay)
     dvdy = (v2 - v1) / (deltay)
+    omega = pressure2 - pressure1
     dudp = (u2 - u1) / (pressure2 - pressure1) if (pressure2 - pressure1) != 0.0 else 0.0
     dvdp = (v2 - v1) / (pressure2 - pressure1) if (pressure2 - pressure1) != 0.0 else 0.0
     dpdx = (pressure2 - pressure1) / (deltax)

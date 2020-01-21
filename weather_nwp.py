@@ -1,5 +1,5 @@
 import math
-from scipy.integrate import quad
+# from scipy.integrate import quad
 
 def calculateDistance(lat1, long1, lat2, long2):#haversine formula
     r = 6371 * pow(10, 3)

@@ -1,5 +1,6 @@
 from sklearn import tree
 from sklearn.externals.six import StringIO
+from sklearn.externals import joblib
 from IPython.display import Image
 import pydotplus
 import csv
@@ -39,6 +40,12 @@ def makeDecisionTree():
     # make decision tree
     clf = tree.DecisionTreeClassifier()
     clf = clf.fit(features, labels)
+
+def saveTree(filename):
+    joblib.dump(clf, filename)
+
+def loadTree(filename):
+    clf = joblib.load(filename)
 
 def printDecisionTree():
     dot_data = StringIO()

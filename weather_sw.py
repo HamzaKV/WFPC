@@ -40,6 +40,21 @@ def calcEuclideanDist(arr2d1, arr2d2):
     b = numpy.array(arr2d2)
     return numpy.linalg.norm(a)
 
+def calcMean(arr):
+    sum = 0
+    for i in range(len(arr)):
+        sum = sum + arr[i]
+    return sum / len(arr)
+
+def variationCalcs(arr):
+    variations = []
+    for i in range(len(arr[0])):
+        tmp = []
+        for j in range(len(arr) - 1):
+            tmp.append(CD[j][i])
+        variations.append(variationCalc(tmp))
+    return variations
+
 CD = readFromFile('weather_data_miami.csv', 1514696400, 7) #current data from January 1 2018
 PD = readFromFile('weather_data_miami.csv',1483160400,14) #past data from January 1 2017
 W = makeSlidingWindow(PD, 7)
@@ -47,6 +62,19 @@ ED = []
 for i in range(len(W)):
     ED.append(calcEuclideanDist(W[i], CD))
 Wi = W[ED.index(min(ED))]
+predicted = CD[len(CD) - 1]
+for i in range(len(CD[0])):
+    variationCDVector = []
+    variationPDVector = []
+    for j in range(1, len(CD)):
+        variationCDVector.append(CD[j][i] - CD[j - 1][i])
+    for j in range(1, len(Wi)):
+        variationPDVector.append(Wi[j][i] - Wi[j - 1][i])
+    m1 = calcMean(variationCDVector)
+    m2 = calcMean(variationPDVector)
+    V = (m1 + m2) / 2
+    predicted[i] = predicted[i] + V
+print(predicted)
 
 # a = [1, 2, 3, 4, 5, 6]
 # b = [4, 5, 6, 7, 8, 9]

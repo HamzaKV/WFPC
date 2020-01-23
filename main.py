@@ -4,6 +4,7 @@ from IPython.display import Image
 import pydotplus
 import csv
 import math
+import numpy
 
 # declare vars
 features = []
@@ -177,3 +178,80 @@ def calculateNWP(time1, latitude1, longitude1, windSpeed1, windBearing1, tempera
 
     #results
     return windSpeedFuture1, temperatureFuture1
+
+def readFromFile(filename, timestamp, days):
+    #read specific data
+    arr = []
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        rec = False
+        i = 0
+        line = 0
+        for row in csv_reader:
+            if line != 0:
+                a = []
+                for j in range(2, len(row)):
+                    a.append(float(row[j]))
+            if row[0] == str(timestamp):
+                i = 0
+                rec = True
+            if rec and i < days:
+                arr.append(a)
+                i = i + 1
+            if i == days:
+                return arr
+            line = line + 1
+
+def makeSlidingWindow(arr, windowLength):
+    arr2 = []
+    i = 0
+    j = 0
+    while i + j < len(arr):
+        tmpArr = []
+        for j in range(windowLength):
+            tmpArr.append(arr[i + j])
+        arr2.append(tmpArr)
+        i = i + 1
+    return arr2
+
+def calcEuclideanDist(arr2d1, arr2d2):
+    a = numpy.array(arr2d1)
+    b = numpy.array(arr2d2)
+    return numpy.linalg.norm(a)
+
+def calcMean(arr):
+    sum = 0
+    for i in range(len(arr)):
+        sum = sum + arr[i]
+    return sum / len(arr)
+
+def variationCalcs(arr):
+    variations = []
+    for i in range(len(arr[0])):
+        tmp = []
+        for j in range(len(arr) - 1):
+            tmp.append(CD[j][i])
+        variations.append(variationCalc(tmp))
+    return variations
+
+def slidingWindowWeather(filename, currentTime, pastTime, days):
+    CD = readFromFile(filename, currentTime, days) #current data from January 1 2018
+    PD = readFromFile(filename, pastTime, days * 2) #past data from January 1 2017
+    W = makeSlidingWindow(PD, days)
+    ED = []
+    for i in range(len(W)):
+        ED.append(calcEuclideanDist(W[i], CD))
+    Wi = W[ED.index(min(ED))]
+    predicted = CD[len(CD) - 1]
+    for i in range(len(CD[0])):
+        variationCDVector = []
+        variationPDVector = []
+        for j in range(1, len(CD)):
+            variationCDVector.append(CD[j][i] - CD[j - 1][i])
+        for j in range(1, len(Wi)):
+            variationPDVector.append(Wi[j][i] - Wi[j - 1][i])
+        m1 = calcMean(variationCDVector)
+        m2 = calcMean(variationPDVector)
+        V = (m1 + m2) / 2
+        predicted[i] = predicted[i] + V
+    return predicted

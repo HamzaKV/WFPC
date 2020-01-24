@@ -3,8 +3,7 @@ import time
 import requests
 import csv
 
-date = datetime(1999,12,31)
-timestamp = int(datetime.timestamp(date)) #Keep adding 86400 to increment by day
+timestamp = int(datetime.timestamp(datetime(1999,12,31))) #Keep adding 86400 to increment by day
 timestampE = int(datetime.timestamp(datetime(2018,12,31)))
 i = 1
 j = 1
@@ -32,7 +31,7 @@ while True:
     #Get data from website
     values = []
     #Locations: Miami,FL:25.761681,-80.191788 | Miami Beach,FL: 25.8103146,-80.1751609 | N Park Rd,Hollywood,FL: 26.0331192,-80.1774954
-    req='https://api.darksky.net/forecast/'+APIKEY+'/25.8103146,-80.1751609,'+str(timestamp+(86400*(i)))
+    req='https://api.darksky.net/forecast/'+APIKEY+'/26.0331192,-80.1774954,'+str(timestamp+(86400*(i)))
     response = requests.get(req)
     if response.status_code == 200:
         net_tries = 0
@@ -50,7 +49,7 @@ while True:
         else:
             continue
     #Dump data in csv file
-    with open('weather_data_miami_beach.csv', 'a') as csvFile:
+    with open('weather_data_miami_hollywood.csv', 'a') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(values)
     csvFile.close()

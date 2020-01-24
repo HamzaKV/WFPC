@@ -8,46 +8,48 @@ import math
 import numpy
 
 # declare vars
-features = []
-features_names = ['precipIntensity', 'precipProbability', 
-            'temperature', 'apparentTemperature', 'dewPoint', 
-            'humidity', 'pressure', 'windSpeed', 'windBearing', 
-            'cloudCover', 'uvIndex', 'visibility']
-label_names = []
-labels = []
-clf = None
+weatherParams = ['precipIntensity', 'precipProbability', 'temperature', 'humidity', 'pressure', 'windSpeed', 'windBearing']
 
-def readDecisionTreeData(filename):
-    #get data in csv
+def readCSVFile(filename, weatherDataParams):
+    times = []
+    forecastsLoc = []
+    weatherDataLoc = []
+
     with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
+        line = 0
+        paramIndices = []
         for row in csv_reader:
-            if line_count == 0:
-                line_count += 1
+            if line == 0:
+                for i in range(len(weatherDataParams)):
+                    if weatherDataParams[i] in row:
+                        paramIndices.append(row.index(weatherDataParams[i]))
             else:
-                l = row[1]
-                if l not in label_names:
-                    label_names.append(l)
-                labels.append(label_names.index(l))
-                f = []
-                for i in range(2,14):
-                    f.append(row[i])
-                features.append(f)
-                line_count += 1
+                times.append(int(row[0]))
+                forecastsLoc.append(row[1])
+                tmp = []
+                for i in paramIndices:
+                    tmp.append(float(row[i]))
+                weatherDataLoc.append(tmp)
+            line = line + 1
+    return times, forecastsLoc, weatherDataLoc
 
-def makeDecisionTree():
+def makeDecisionTree(features, labels):
     # make decision tree
     clf = tree.DecisionTreeClassifier()
     clf = clf.fit(features, labels)
+    return clf
 
-def saveTree(filename):
+def runDecisionTree(clf, features):
+    return clf.predict(features)
+
+def saveTree(filename, clf):
     joblib.dump(clf, filename)
 
 def loadTree(filename):
-    clf = joblib.load(filename)
+    return joblib.load(filename)
 
-def printDecisionTree():
+def printDecisionTree(clf, outputfile, features_names, label_names):
     dot_data = StringIO()
     tree.export_graphviz(clf, 
                         out_file=dot_data,
@@ -57,7 +59,7 @@ def printDecisionTree():
                         rounded=True,
                         impurity=False)
     graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
-    graph.write_pdf("weather_tree.pdf")
+    graph.write_pdf(outputfile)
 
 def calculateDistance(lat1, long1, lat2, long2):#haversine formula
     r = 6371 * pow(10, 3)
@@ -73,8 +75,9 @@ def calculateDistance(lat1, long1, lat2, long2):#haversine formula
     bearing = (math.atan2(y, x) + math.pi) % math.pi
     return distance, bearing
 
-def calculateNWP(time1, latitude1, longitude1, windSpeed1, windBearing1, temperature1, pressure1, 
-                    time2, latitude2, longitude2, windSpeed2, windBearing2, temperature2, pressure2):
+def calculateNWP(time1, time2, 
+                    latitude1, longitude1, windSpeed1, windBearing1, temperature1, pressure1, 
+                    latitude2, longitude2, windSpeed2, windBearing2, temperature2, pressure2):
     #variables for forecasting
     windSpeedFuture1 = 0
     temperatureFuture1 = 0
@@ -181,33 +184,11 @@ def calculateNWP(time1, latitude1, longitude1, windSpeed1, windBearing1, tempera
     uForecasted = uForecasted / 0.00062137 #metres per second to miles per second
     vForecasted = vForecasted / 0.00062137 #metres per second to miles per second
     windSpeedFuture1 = (math.sqrt(math.pow(uForecasted, 2) + math.pow(vForecasted, 2))) * 3600
+    windBearingFuture1 = math.degrees(math.atan(abs(vForecasted)/abs(uForecasted)))
     temperatureFuture1 = (tempForecasted * 9 / 5) - 459.67
 
     #results
-    return windSpeedFuture1, temperatureFuture1
-
-def readFromFile(filename, timestamp, days):
-    #read specific data
-    arr = []
-    with open(filename) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        rec = False
-        i = 0
-        line = 0
-        for row in csv_reader:
-            if line != 0:
-                a = []
-                for j in range(2, len(row)):
-                    a.append(float(row[j]))
-            if row[0] == str(timestamp):
-                i = 0
-                rec = True
-            if rec and i < days:
-                arr.append(a)
-                i = i + 1
-            if i == days:
-                return arr
-            line = line + 1
+    return windSpeedFuture1, windBearingFuture1,temperatureFuture1
 
 def makeSlidingWindow(arr, windowLength):
     arr2 = []
@@ -241,9 +222,7 @@ def variationCalcs(arr):
         variations.append(variationCalc(tmp))
     return variations
 
-def slidingWindowWeather(filename, currentTime, pastTime, days):
-    CD = readFromFile(filename, currentTime, days) #current data from January 1 2018
-    PD = readFromFile(filename, pastTime, days * 2) #past data from January 1 2017
+def slidingWindowWeather(CD, PD, days):
     W = makeSlidingWindow(PD, days)
     ED = []
     for i in range(len(W)):
@@ -262,3 +241,28 @@ def slidingWindowWeather(filename, currentTime, pastTime, days):
         V = (m1 + m2) / 2
         predicted[i] = predicted[i] + V
     return predicted
+
+times1, forecasts1, weatherDataLoc1 = readCSVFile('weather_data_miami.csv', weatherParams)
+# times2, forecasts2, weatherDataLoc2 = readCSVFile('weather_data_miami_beach.csv', weatherParams)
+# times3, forecasts3, weatherDataLoc3 = readCSVFile('weather_data_miami_hollywood.csv', weatherParams)
+clf = makeDecisionTree(weatherDataLoc1, forecasts1)
+startDate = 1514696400 #January 1 2018
+endDate = 1545973200 #December 28 2018
+#run NWP model miami-beach here
+
+#run NWP model miami-hollywood here
+
+#run Sliding Window model here
+CD = []
+PD = []
+nwpStartDate1 = startDate - 518400
+if nwpStartDate1 in times1:
+    timesIndex1 = times1.index(nwpStartDate1)
+    for i in range(timesIndex1, timesIndex1 + 7):
+        CD.append(weatherDataLoc1[i])
+nwpStartDate2 = startDate - 1123200
+if nwpStartDate2 in times1:
+    timesIndex2 = times1.index(nwpStartDate2)
+    for i in range(timesIndex2, timesIndex2 + 14):
+        PD.append(weatherDataLoc1[i])
+slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)

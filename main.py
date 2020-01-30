@@ -188,7 +188,7 @@ def calculateNWP(time1, time2,
     temperatureFuture1 = (tempForecasted * 9 / 5) - 459.67
 
     #results
-    return windSpeedFuture1, windBearingFuture1,temperatureFuture1
+    return windSpeedFuture1, windBearingFuture1, temperatureFuture1
 
 def makeSlidingWindow(arr, windowLength):
     arr2 = []
@@ -246,6 +246,11 @@ times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_miami.cs
 # times2, forecasts2, weatherDataLoc2 = readCSVFile('weather_data_miami_beach.csv', weatherParams)
 # times3, forecasts3, weatherDataLoc3 = readCSVFile('weather_data_miami_hollywood.csv', weatherParams)
 clf = makeDecisionTree(weatherDataLoc1, forecasts1)
+# labels = []
+# for n in forecasts1:
+#     if not(n in labels):
+#         labels.append(n)
+# printDecisionTree(clf, './output/weather_tree_2.pdf', weatherParams, labels)
 startDate = 1514696400 #January 1 2018
 endDate = 1545973200 #December 28 2018
 #run NWP model miami-beach here
@@ -266,3 +271,4 @@ if nwpStartDate2 in times1:
     for i in range(timesIndex2, timesIndex2 + 14):
         PD.append(weatherDataLoc1[i])
 slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)
+print(slidingWindowPrediction)

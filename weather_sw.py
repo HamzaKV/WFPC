@@ -46,15 +46,6 @@ def calcMean(arr):
         sum = sum + arr[i]
     return sum / len(arr)
 
-def variationCalcs(arr):
-    variations = []
-    for i in range(len(arr[0])):
-        tmp = []
-        for j in range(len(arr) - 1):
-            tmp.append(CD[j][i])
-        variations.append(variationCalc(tmp))
-    return variations
-
 CD = readFromFile('weather_data_miami.csv', 1514696400, 7) #current data from January 1 2018
 PD = readFromFile('weather_data_miami.csv',1483160400,14) #past data from January 1 2017
 W = makeSlidingWindow(PD, 7)
@@ -74,6 +65,7 @@ for i in range(len(CD[0])):
     m2 = calcMean(variationPDVector)
     V = (m1 + m2) / 2
     predicted[i] = predicted[i] + V
+print(0,0,62.92,63.02,59.1,0.87,1020.5,1.27,329,0.29,0,8.771,-1)
 print(predicted)
 
 # a = [1, 2, 3, 4, 5, 6]

@@ -146,5 +146,6 @@ windSpeedFuture1 = (math.sqrt(math.pow(uForecasted, 2) + math.pow(vForecasted, 2
 temperatureFuture1 = (tempForecasted * 9 / 5) - 459.67
 
 #results
+print(4.92, 68.39)
 print(windSpeedFuture1, temperatureFuture1)
 #error = abs(experimental - actual)/actual * 100

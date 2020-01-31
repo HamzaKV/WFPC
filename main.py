@@ -243,8 +243,8 @@ def slidingWindowWeather(CD, PD, days):
     return predicted
 
 times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_miami.csv', weatherParams)
-# times2, forecasts2, weatherDataLoc2 = readCSVFile('weather_data_miami_beach.csv', weatherParams)
-# times3, forecasts3, weatherDataLoc3 = readCSVFile('weather_data_miami_hollywood.csv', weatherParams)
+times2, forecasts2, weatherDataLoc2 = readCSVFile('./input/weather_data_miami_beach.csv', weatherParams)
+times3, forecasts3, weatherDataLoc3 = readCSVFile('./input/weather_data_miami_hollywood.csv', weatherParams)
 clf = makeDecisionTree(weatherDataLoc1, forecasts1)
 # labels = []
 # for n in forecasts1:

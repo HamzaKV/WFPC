@@ -49,7 +49,7 @@ while True:
         else:
             continue
     #Dump data in csv file
-    with open('weather_data_miami_beach.csv', 'a') as csvFile:
+    with open('weather_data_miami_beach.csv', 'a', , newline='') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(values)
     csvFile.close()

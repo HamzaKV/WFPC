@@ -36,6 +36,12 @@ def readCSVFile(filename, weatherDataParams):
             line = line + 1
     return times, forecastsLoc, weatherDataLoc
 
+def writeCSV(filename, array):
+    with open(filename, 'w+', newline='') as output_file:
+        writer = csv.writer(output_file, delimiter=',', escapechar =' ', quoting=csv.QUOTE_NONE)
+        for r in array:
+            writer.writerow([r])
+
 def makeDecisionTree(features, labels):
     # make decision tree
     clf = tree.DecisionTreeClassifier()
@@ -183,8 +189,8 @@ def calculateNWP(time1, time2,
     tempForecasted = temperature1 + (dTdt * (time2 - time1))
 
     #convert back
-    uForecasted = uForecasted / 0.00062137 #metres per second to miles per second
-    vForecasted = vForecasted / 0.00062137 #metres per second to miles per second
+    uForecasted = uForecasted / 6213.7 #metres per second to miles per second
+    vForecasted = vForecasted / 6213.7 #metres per second to miles per second
     windSpeedFuture1 = (math.sqrt(math.pow(uForecasted, 2) + math.pow(vForecasted, 2))) * 3600
     windBearingFuture1 = math.degrees(math.atan(abs(vForecasted)/abs(uForecasted)))
     temperatureFuture1 = (tempForecasted * 9 / 5) - 459.67
@@ -250,7 +256,7 @@ predictionsNWP = []
 predictionsSW = []
 
 currentDate = startDate
-while currentDate != endDate:
+while currentDate < endDate:
     dateIndex = times1.index(currentDate)
     #run NWP model miami-beach here
     nwpCalcLoc1 = calculateNWP(
@@ -299,9 +305,14 @@ while currentDate != endDate:
             PD.append(weatherDataLoc1[i])
     slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)
     #add to predictions array
-    predictionsNWP.append((currentDate + (24 * 3600)) + ',' + clf.test(nwpPrediction) + ',' + ','.join(map(str, nwpPrediction)))
-    predictionsSW.append((currentDate + (24 * 3600)) + ',' + clf.test(slidingWindowPrediction) + ',' +  ','.join(map(str, slidingWindowPrediction)))
+    predictionsNWP.append(str(currentDate + (24 * 3600)) + ',' + ','.join(map(str, nwpPrediction)))
+    swForcast = clf.predict([slidingWindowPrediction])
+    predictionsSW.append(str(currentDate + (24 * 3600)) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
     #change current date to next
     currentDate = currentDate + (24 * 3600)
+#make output files
+writeCSV('./output/weather_nwp_miami.csv', predictionsNWP)
+writeCSV('./output/weather_sw_miami.csv', predictionsSW)
+#calculate program time
 endProgram = time.time()
-print(endProgram-beginProgram)
+print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')

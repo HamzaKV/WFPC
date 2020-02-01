@@ -1,3 +1,4 @@
+time,summary,precipIntensity,precipProbability,temperature,apparentTemperature,dewPoint,humidity,pressure,windSpeed,windBearing,cloudCover,uvIndex,visibility,nearestStormDistance
 946702800,Clear,0,0,64.64,64.67,59.1,0.82,1021.5,2.8,83,0.01,0,6.769,-1
 946789200,Clear,0,0,68.12,68.47,62.33,0.82,1023.1,5.04,88,0.03,0,9.997,-1
 946875600,Partly Cloudy,0,0,64.92,65.34,61.92,0.9,1022.2,5.78,81,0.42,0,9.997,-1

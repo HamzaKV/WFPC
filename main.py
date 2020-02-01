@@ -1,3 +1,6 @@
+import time
+beginProgram = time.time()
+
 from sklearn import tree
 from sklearn.externals.six import StringIO
 from sklearn.externals import joblib
@@ -6,9 +9,7 @@ import pydotplus
 import csv
 import math
 import numpy
-import time
 
-beginProgram = time.time()
 # declare vars
 weatherParams = ['precipIntensity', 'precipProbability', 'temperature', 'humidity', 'pressure', 'windSpeed', 'windBearing']
 

@@ -1,6 +1,4 @@
 import time
-beginProgram = time.time()
-
 from sklearn import tree
 from sklearn.externals.six import StringIO
 from sklearn.externals import joblib
@@ -241,23 +239,24 @@ def slidingWindowWeather(CD, PD, days):
         V = (m1 + m2) / 2
         predicted[i] = predicted[i] + V
     return predicted
+if __name__ == "__main__":
+    beginProgram = time.time()
+    times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_miami.csv', weatherParams)
+    times2, forecasts2, weatherDataLoc2 = readCSVFile('./input/weather_data_miami_beach.csv', weatherParams)
+    times3, forecasts3, weatherDataLoc3 = readCSVFile('./input/weather_data_miami_hollywood.csv', weatherParams)
+    clf = makeDecisionTree(weatherDataLoc1, forecasts1)
+    # labels = []
+    # for n in forecasts1:
+    #     if not(n in labels):
+    #         labels.append(n)
+    # printDecisionTree(clf, './output/weather_tree_2.pdf', weatherParams, labels)
+    startDate = 1514696400 #January 1 2018
+    endDate = 1545973200 #December 28 2018
+    predictionsNWP = []
+    predictionsSW = []
 
-times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_miami.csv', weatherParams)
-times2, forecasts2, weatherDataLoc2 = readCSVFile('./input/weather_data_miami_beach.csv', weatherParams)
-times3, forecasts3, weatherDataLoc3 = readCSVFile('./input/weather_data_miami_hollywood.csv', weatherParams)
-clf = makeDecisionTree(weatherDataLoc1, forecasts1)
-# labels = []
-# for n in forecasts1:
-#     if not(n in labels):
-#         labels.append(n)
-# printDecisionTree(clf, './output/weather_tree_2.pdf', weatherParams, labels)
-startDate = 1514696400 #January 1 2018
-endDate = 1545973200 #December 28 2018
-predictionsNWP = []
-predictionsSW = []
-
-currentDate = startDate
-while currentDate < endDate:
+    currentDate = startDate
+    # while currentDate < endDate:
     dateIndex = times1.index(currentDate)
     #run NWP model miami-beach here
     nwpCalcLoc1 = calculateNWP(
@@ -306,14 +305,14 @@ while currentDate < endDate:
             PD.append(weatherDataLoc1[i])
     slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)
     #add to predictions array
-    predictionsNWP.append(str(currentDate + (24 * 3600)) + ',' + ','.join(map(str, nwpPrediction)))
-    swForcast = clf.predict([slidingWindowPrediction])
-    predictionsSW.append(str(currentDate + (24 * 3600)) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
-    #change current date to next
-    currentDate = currentDate + (24 * 3600)
-#make output files
-writeCSV('./output/weather_nwp_miami.csv', predictionsNWP)
-writeCSV('./output/weather_sw_miami.csv', predictionsSW)
-#calculate program time
-endProgram = time.time()
-print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')
+    # predictionsNWP.append(str(currentDate + (24 * 3600)) + ',' + ','.join(map(str, nwpPrediction)))
+    # swForcast = clf.predict([slidingWindowPrediction])
+    # predictionsSW.append(str(currentDate + (24 * 3600)) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
+        #change current date to next
+        # currentDate = currentDate + (24 * 3600)
+    #make output files
+    # writeCSV('./output/weather_nwp_miami.csv', predictionsNWP)
+    # writeCSV('./output/weather_sw_miami.csv', predictionsSW)
+    #calculate program time
+    endProgram = time.time()
+    print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')

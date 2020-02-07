@@ -1,6 +1,5 @@
 import time
-beginProgram = time.time()
-
+import sys
 from sklearn import tree
 from sklearn.externals.six import StringIO
 from sklearn.externals import joblib
@@ -9,6 +8,9 @@ import pydotplus
 import csv
 import math
 import numpy
+import queue
+from multiprocessing import Process, Pipe
+from threading import Thread
 
 # declare vars
 weatherParams = ['precipIntensity', 'precipProbability', 'temperature', 'humidity', 'pressure', 'windSpeed', 'windBearing']
@@ -242,78 +244,166 @@ def slidingWindowWeather(CD, PD, days):
         predicted[i] = predicted[i] + V
     return predicted
 
-times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_miami.csv', weatherParams)
-times2, forecasts2, weatherDataLoc2 = readCSVFile('./input/weather_data_miami_beach.csv', weatherParams)
-times3, forecasts3, weatherDataLoc3 = readCSVFile('./input/weather_data_miami_hollywood.csv', weatherParams)
-clf = makeDecisionTree(weatherDataLoc1, forecasts1)
+def getData(queue, filename, wtParams):
+    times, forecasts, weatherDataLoc = readCSVFile(filename, wtParams)
+    queue.put([times, forecasts, weatherDataLoc])
+
+def mlTrain(queue, weatherDataLoc, forecasts):
+    clf = makeDecisionTree(weatherDataLoc, forecasts)
+    queue.put(clf)
+
+def nwpModel(queue, currentDate, lat1, long1, lat2, long2, wD1L1, wD2L1, wD3L1, wD4L1, wD1L2, wD2L2, wD3L2, wD4L2):
+    nwpCalcLoc = calculateNWP(
+                currentDate, currentDate+(24 * 3600), 
+                lat1, long1, wD1L1, wD2L1, wD3L1, wD4L1,
+                lat2, long2, wD1L2, wD2L2, wD3L2, wD4L2)
+    queue.put(nwpCalcLoc)
+
+def slidingWindowModel(queue, currentDate, times, weatherDataLoc):
+    CD = []
+    PD = []
+    nwpStartDate1 = currentDate - 518400
+    if nwpStartDate1 in times:
+        timesIndex1 = times.index(nwpStartDate1)
+        for i in range(timesIndex1, timesIndex1 + 7):
+            CD.append(weatherDataLoc[i])
+    nwpStartDate2 = currentDate - 1123200
+    if nwpStartDate2 in times:
+        timesIndex2 = times.index(nwpStartDate2)
+        for i in range(timesIndex2, timesIndex2 + 14):
+            PD.append(weatherDataLoc[i])
+    slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)
+
+if __name__ == '__main__':
+    beginProgram = time.time()
+    q = queue.Queue()
+    t1 = Thread(getData(q, './input/weather_data_miami.csv', weatherParams.copy()))
+    t1.start()
+    t2 = Thread(getData(q, './input/weather_data_miami_beach.csv', weatherParams.copy()))
+    t2.start()
+    t3 = Thread(getData(q, './input/weather_data_miami_hollywood.csv', weatherParams.copy()))
+    t3.start()
+    t1.join()
+    t2.join()
+    t3.join()
+    d1 = q.get()
+    times = d1[0]
+    forecasts = d1[1]
+    weatherDataLoc1 = d1[2]
+    weatherDataLoc2 = q.get()[2]
+    weatherDataLoc3 = q.get()[2]
+    startDate = 1514696400 #January 1 2018
+    endDate = 1545973200 #December 28 2018
+    #run models
+    q = queue.Queue()
+    t0 = Thread(mlTrain(q, weatherDataLoc1, forecasts))
+    t0.start()
+    currentDate = startDate
+    dateIndex = times.index(currentDate)
+    t1 = Thread(nwpModel(q, currentDate, 
+                    25.761681, -80.191788, 
+                    25.8103146, -80.1751609,
+                    weatherDataLoc1[dateIndex][5], 
+                    weatherDataLoc1[dateIndex][6], 
+                    weatherDataLoc1[dateIndex][2], 
+                    weatherDataLoc1[dateIndex][4],
+                    weatherDataLoc2[dateIndex][5], 
+                    weatherDataLoc2[dateIndex][6], 
+                    weatherDataLoc2[dateIndex][2], 
+                    weatherDataLoc2[dateIndex][4]))
+    t1.start()
+    t2 = Thread(nwpModel(q, currentDate, 
+                    25.761681, -80.191788, 
+                    25.8103146, -80.1751609,
+                    weatherDataLoc1[dateIndex][5], 
+                    weatherDataLoc1[dateIndex][6], 
+                    weatherDataLoc1[dateIndex][2], 
+                    weatherDataLoc1[dateIndex][4],
+                    weatherDataLoc2[dateIndex][5], 
+                    weatherDataLoc2[dateIndex][6], 
+                    weatherDataLoc2[dateIndex][2], 
+                    weatherDataLoc2[dateIndex][4]))
+    t2.start()
+    t3 = Thread(slidingWindowModel(q, currentDate, times, weatherDataLoc1))
+    t3.start()
+    t0.join()
+    t1.join()
+    t2.join()
+    t3.join()
+    #calculate program time
+    endProgram = time.time()
+    print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')
+
+
+# times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_miami.csv', weatherParams.copy())
+# times2, forecasts2, weatherDataLoc2 = readCSVFile('./input/weather_data_miami_beach.csv', weatherParams.copy())
+# times3, forecasts3, weatherDataLoc3 = readCSVFile('./input/weather_data_miami_hollywood.csv', weatherParams.copy())
+# clf = makeDecisionTree(weatherDataLoc1, forecasts1)
 # labels = []
 # for n in forecasts1:
 #     if not(n in labels):
 #         labels.append(n)
 # printDecisionTree(clf, './output/weather_tree_2.pdf', weatherParams, labels)
-startDate = 1514696400 #January 1 2018
-endDate = 1545973200 #December 28 2018
-predictionsNWP = []
-predictionsSW = []
+# startDate = 1514696400 #January 1 2018
+# endDate = 1545973200 #December 28 2018
+# predictionsNWP = []
+# predictionsSW = []
 
-currentDate = startDate
-while currentDate < endDate:
-    dateIndex = times1.index(currentDate)
-    #run NWP model miami-beach here
-    nwpCalcLoc1 = calculateNWP(
-                    currentDate, 
-                    currentDate+(24 * 3600), 
-                    25.761681, -80.191788, 
-                    weatherDataLoc1[dateIndex][5], 
-                    weatherDataLoc1[dateIndex][6], 
-                    weatherDataLoc1[dateIndex][2], 
-                    weatherDataLoc1[dateIndex][4],
-                    25.8103146, -80.1751609,
-                    weatherDataLoc2[dateIndex][5], 
-                    weatherDataLoc2[dateIndex][6], 
-                    weatherDataLoc2[dateIndex][2], 
-                    weatherDataLoc2[dateIndex][4])
-    #run NWP model miami-hollywood here
-    nwpCalcLoc2 = calculateNWP(
-                    currentDate, 
-                    currentDate+(24 * 3600), 
-                    25.761681, -80.191788, 
-                    weatherDataLoc1[dateIndex][5], 
-                    weatherDataLoc1[dateIndex][6], 
-                    weatherDataLoc1[dateIndex][2], 
-                    weatherDataLoc1[dateIndex][4],
-                    26.0331192, -80.1774954,
-                    weatherDataLoc3[dateIndex][5], 
-                    weatherDataLoc3[dateIndex][6], 
-                    weatherDataLoc3[dateIndex][2], 
-                    weatherDataLoc3[dateIndex][4])
-    #average results of the two calculations
-    nwpPrediction = []
-    for i in range(len(nwpCalcLoc1)):
-        nwpPrediction.append((nwpCalcLoc1[i] + nwpCalcLoc2[i])/2)
-    #run Sliding Window model here
-    CD = []
-    PD = []
-    nwpStartDate1 = currentDate - 518400
-    if nwpStartDate1 in times1:
-        timesIndex1 = times1.index(nwpStartDate1)
-        for i in range(timesIndex1, timesIndex1 + 7):
-            CD.append(weatherDataLoc1[i])
-    nwpStartDate2 = currentDate - 1123200
-    if nwpStartDate2 in times1:
-        timesIndex2 = times1.index(nwpStartDate2)
-        for i in range(timesIndex2, timesIndex2 + 14):
-            PD.append(weatherDataLoc1[i])
-    slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)
-    #add to predictions array
-    predictionsNWP.append(str(currentDate + (24 * 3600)) + ',' + ','.join(map(str, nwpPrediction)))
-    swForcast = clf.predict([slidingWindowPrediction])
-    predictionsSW.append(str(currentDate + (24 * 3600)) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
-    #change current date to next
-    currentDate = currentDate + (24 * 3600)
-#make output files
-writeCSV('./output/weather_nwp_miami.csv', predictionsNWP)
-writeCSV('./output/weather_sw_miami.csv', predictionsSW)
-#calculate program time
-endProgram = time.time()
-print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')
+# currentDate = startDate
+# while currentDate < endDate:
+#     dateIndex = times1.index(currentDate)
+#     #run NWP model miami-beach here
+#     nwpCalcLoc1 = calculateNWP(
+#                     currentDate, 
+#                     currentDate+(24 * 3600), 
+#                     25.761681, -80.191788, 
+#                     weatherDataLoc1[dateIndex][5], 
+#                     weatherDataLoc1[dateIndex][6], 
+#                     weatherDataLoc1[dateIndex][2], 
+#                     weatherDataLoc1[dateIndex][4],
+#                     25.8103146, -80.1751609,
+#                     weatherDataLoc2[dateIndex][5], 
+#                     weatherDataLoc2[dateIndex][6], 
+#                     weatherDataLoc2[dateIndex][2], 
+#                     weatherDataLoc2[dateIndex][4])
+#     #run NWP model miami-hollywood here
+#     nwpCalcLoc2 = calculateNWP(
+#                     currentDate, 
+#                     currentDate+(24 * 3600), 
+#                     25.761681, -80.191788, 
+#                     weatherDataLoc1[dateIndex][5], 
+#                     weatherDataLoc1[dateIndex][6], 
+#                     weatherDataLoc1[dateIndex][2], 
+#                     weatherDataLoc1[dateIndex][4],
+#                     26.0331192, -80.1774954,
+#                     weatherDataLoc3[dateIndex][5], 
+#                     weatherDataLoc3[dateIndex][6], 
+#                     weatherDataLoc3[dateIndex][2], 
+#                     weatherDataLoc3[dateIndex][4])
+#     #average results of the two calculations
+#     nwpPrediction = []
+#     for i in range(len(nwpCalcLoc1)):
+#         nwpPrediction.append((nwpCalcLoc1[i] + nwpCalcLoc2[i])/2)
+#     #run Sliding Window model here
+#     CD = []
+#     PD = []
+#     nwpStartDate1 = currentDate - 518400
+#     if nwpStartDate1 in times1:
+#         timesIndex1 = times1.index(nwpStartDate1)
+#         for i in range(timesIndex1, timesIndex1 + 7):
+#             CD.append(weatherDataLoc1[i])
+#     nwpStartDate2 = currentDate - 1123200
+#     if nwpStartDate2 in times1:
+#         timesIndex2 = times1.index(nwpStartDate2)
+#         for i in range(timesIndex2, timesIndex2 + 14):
+#             PD.append(weatherDataLoc1[i])
+#     slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)
+#     #add to predictions array
+#     predictionsNWP.append(str(currentDate + (24 * 3600)) + ',' + ','.join(map(str, nwpPrediction)))
+#     swForcast = clf.predict([slidingWindowPrediction])
+#     predictionsSW.append(str(currentDate + (24 * 3600)) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
+#     #change current date to next
+#     currentDate = currentDate + (24 * 3600)
+# #make output files
+# writeCSV('./output/weather_nwp_miami.csv', predictionsNWP)
+# writeCSV('./output/weather_sw_miami.csv', predictionsSW)

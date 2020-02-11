@@ -287,6 +287,7 @@ def slidingWindowModel(mainQueue, currentDate, times, weatherDataLoc):
 
 if __name__ == '__main__':
     beginProgram = time.time()
+    predictions = []
     q = queue.Queue()
     t1 = Thread(getData(q, './input/weather_data_miami.csv', weatherParams.copy()))
     t2 = Thread(getData(q, './input/weather_data_miami_beach.csv', weatherParams.copy()))
@@ -304,7 +305,7 @@ if __name__ == '__main__':
     weatherDataLoc2 = q.get()[2]
     weatherDataLoc3 = q.get()[2]
     startDate = 1514696400 #January 1 2018
-    endDate = 1545973200 #December 28 2018
+    endDate = 1515301200 #January 7 2018
     #run models
     q = queue.Queue()
     t0 = Thread(mlTrain(q, weatherDataLoc1, forecasts))
@@ -347,8 +348,50 @@ if __name__ == '__main__':
     nwp2 = q.get()
     sw = q.get()
     #nwp2+nwp1
-    # machineLearning.predict()
+    predictedForecast = machineLearning.predict([sw])
+    predictions.append([str(currentDate) + ', ' + predictedForecast[0] + ',' + ', '.join(map(str, sw))])
+    currentDate = currentDate + (24 * 3600)
+    while currentDate < endDate:
+        dateIndex = times.index(currentDate)
+        t1 = Thread(nwpModel(q, currentDate, 
+                        25.761681, -80.191788, 
+                        25.8103146, -80.1751609,
+                        weatherDataLoc1[dateIndex][5], 
+                        weatherDataLoc1[dateIndex][6], 
+                        weatherDataLoc1[dateIndex][2], 
+                        weatherDataLoc1[dateIndex][4],
+                        weatherDataLoc2[dateIndex][5], 
+                        weatherDataLoc2[dateIndex][6], 
+                        weatherDataLoc2[dateIndex][2], 
+                        weatherDataLoc2[dateIndex][4]))
+        t2 = Thread(nwpModel(q, currentDate, 
+                        25.761681, -80.191788, 
+                        25.8103146, -80.1751609,
+                        weatherDataLoc1[dateIndex][5], 
+                        weatherDataLoc1[dateIndex][6], 
+                        weatherDataLoc1[dateIndex][2], 
+                        weatherDataLoc1[dateIndex][4],
+                        weatherDataLoc2[dateIndex][5], 
+                        weatherDataLoc2[dateIndex][6], 
+                        weatherDataLoc2[dateIndex][2], 
+                        weatherDataLoc2[dateIndex][4]))
+        t3 = Thread(slidingWindowModel(q, currentDate, times, weatherDataLoc1))
+        t1.start()
+        t2.start()
+        t3.start()
+        t1.join()
+        t2.join()
+        t3.join()
+        nwp1 = q.get()
+        nwp2 = q.get()
+        sw = q.get()
+        #nwp2+nwp1
+        predictedForecast = machineLearning.predict([sw])
+        predictions.append([str(currentDate) + ', ' + predictedForecast[0] + ',' + ', '.join(map(str, sw))])
+        currentDate = currentDate + (24 * 3600)
     #calculate program time
     endProgram = time.time()
     print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')
+    for a in predictions:
+        print(a)
 

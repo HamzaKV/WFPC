@@ -349,8 +349,8 @@ if __name__ == '__main__':
     sw = q.get()
     #nwp2+nwp1
     predictedForecast = machineLearning.predict([sw])
-    predictions.append([str(currentDate) + ', ' + predictedForecast[0] + ',' + ', '.join(map(str, sw))])
     currentDate = currentDate + (24 * 3600)
+    predictions.append([str(currentDate) + ',' + predictedForecast[0] + ',' + ','.join(map(str, sw))])
     while currentDate < endDate:
         dateIndex = times.index(currentDate)
         t1 = Thread(nwpModel(q, currentDate, 
@@ -387,8 +387,8 @@ if __name__ == '__main__':
         sw = q.get()
         #nwp2+nwp1
         predictedForecast = machineLearning.predict([sw])
-        predictions.append([str(currentDate) + ', ' + predictedForecast[0] + ',' + ', '.join(map(str, sw))])
         currentDate = currentDate + (24 * 3600)
+        predictions.append([str(currentDate) + ',' + predictedForecast[0] + ',' + ','.join(map(str, sw))])
     #calculate program time
     endProgram = time.time()
     print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')

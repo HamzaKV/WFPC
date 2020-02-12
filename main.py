@@ -1,5 +1,4 @@
 import time
-beginProgram = time.time()
 from sklearn import tree
 from sklearn.externals.six import StringIO
 from sklearn.externals import joblib
@@ -241,6 +240,7 @@ def slidingWindowWeather(CD, PD, days):
         predicted[i] = predicted[i] + V
     return predicted
 if __name__ == "__main__":
+    beginProgram = time.perf_counter()
     times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_miami.csv', weatherParams)
     times2, forecasts2, weatherDataLoc2 = readCSVFile('./input/weather_data_miami_beach.csv', weatherParams)
     times3, forecasts3, weatherDataLoc3 = readCSVFile('./input/weather_data_miami_hollywood.csv', weatherParams)
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     #         labels.append(n)
     # printDecisionTree(clf, './output/weather_tree_2.pdf', weatherParams, labels)
     startDate = 1514696400 #January 1 2018
-    endDate = 1515301200 #January 7 2018
+    endDate = startDate + 604800 #January 7 2018 (1515301200)
     # endDate = 1545973200 #December 28 2018
     predictionsNWP = []
     predictionsSW = []
@@ -262,7 +262,7 @@ if __name__ == "__main__":
         #run NWP model miami-beach here
         nwpCalcLoc1 = calculateNWP(
                         currentDate, 
-                        currentDate+(24 * 3600), 
+                        currentDate+(86400), 
                         25.761681, -80.191788, 
                         weatherDataLoc1[dateIndex][5], 
                         weatherDataLoc1[dateIndex][6], 
@@ -276,7 +276,7 @@ if __name__ == "__main__":
         #run NWP model miami-hollywood here
         nwpCalcLoc2 = calculateNWP(
                         currentDate, 
-                        currentDate+(24 * 3600), 
+                        currentDate+(86400), 
                         25.761681, -80.191788, 
                         weatherDataLoc1[dateIndex][5], 
                         weatherDataLoc1[dateIndex][6], 
@@ -305,12 +305,12 @@ if __name__ == "__main__":
             for i in range(timesIndex2, timesIndex2 + 14):
                 PD.append(weatherDataLoc1[i])
         slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)
-        #add to predictions array
-        predictionsNWP.append(str(currentDate + (24 * 3600)) + ',' + ','.join(map(str, nwpPrediction)))
-        swForcast = clf.predict([slidingWindowPrediction])
-        predictionsSW.append(str(currentDate + (24 * 3600)) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
         #change current date to next
         currentDate = currentDate + (24 * 3600)
+        #add to predictions array
+        predictionsNWP.append(str(currentDate) + ',' + ','.join(map(str, nwpPrediction)))
+        swForcast = clf.predict([slidingWindowPrediction])
+        predictionsSW.append(str(currentDate) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
     #show output
     for a in predictionsSW:
         print(a)
@@ -318,5 +318,5 @@ if __name__ == "__main__":
     # writeCSV('./output/weather_nwp_miami.csv', predictionsNWP)
     # writeCSV('./output/weather_sw_miami.csv', predictionsSW)
     #calculate program time
-    endProgram = time.time()
+    endProgram = time.perf_counter()
     print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')

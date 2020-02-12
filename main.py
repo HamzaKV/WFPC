@@ -286,7 +286,7 @@ def slidingWindowModel(mainQueue, currentDate, times, weatherDataLoc):
     mainQueue.put(slidingWindowPrediction)
 
 if __name__ == '__main__':
-    beginProgram = time.time()
+    beginProgram = time.perf_counter()
     predictions = []
     q = queue.Queue()
     t1 = Thread(getData(q, './input/weather_data_miami.csv', weatherParams.copy()))
@@ -390,7 +390,7 @@ if __name__ == '__main__':
         currentDate = currentDate + (24 * 3600)
         predictions.append([str(currentDate) + ',' + predictedForecast[0] + ',' + ','.join(map(str, sw))])
     #calculate program time
-    endProgram = time.time()
+    endProgram = time.perf_counter()
     print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')
     for a in predictions:
         print(a)

@@ -205,27 +205,9 @@ def slidingWindowWeather(CD, PD, days):
         predicted[i] = predicted[i] + V
     return predicted
 
-def getTimeData(subQueue, filename):
+def getData(mainQueue, filename, wtParams):
     times = []
-    with open(filename) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line = 0
-        for row in csv_reader:
-            if line != 0: times.append(int(row[0]))
-            line = line + 1
-    subQueue.put(times)
-
-def getForecastData(subQueue, filename):
     forecasts = []
-    with open(filename) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line = 0
-        for row in csv_reader:
-            if line != 0: forecasts.append(row[1])
-            line = line + 1
-    subQueue.put(forecasts)
-
-def getWeatherData(subQueue, filename, wtParams):
     weatherData = []
     with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -237,25 +219,14 @@ def getWeatherData(subQueue, filename, wtParams):
                     if wtParams[i] in row:
                         paramIndices.append(row.index(wtParams[i]))
             else:
+                times.append(int(row[0]))
+                forecasts.append(row[1])
                 tmp = []
                 for i in paramIndices:
                     tmp.append(float(row[i]))
                 weatherData.append(tmp)
             line = line + 1
-    subQueue.put(weatherData)
-
-def getData(mainQueue, filename, wtParams):
-    subQueue = queue.Queue()
-    t1 = Thread(getTimeData(subQueue, filename))
-    t2 = Thread(getForecastData(subQueue, filename))
-    t3 = Thread(getWeatherData(subQueue, filename, wtParams))
-    t1.start()
-    t2.start()
-    t3.start()
-    t1.join()
-    t2.join()
-    t3.join()
-    mainQueue.put([subQueue.get(), subQueue.get(), subQueue.get()])
+    mainQueue.put([times, forecasts, weatherData])
 
 def mlTrain(mainQueue, weatherDataLoc, forecasts):
     clf = tree.DecisionTreeClassifier()

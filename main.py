@@ -1,4 +1,5 @@
 import time
+beginProgram = time.time()
 from sklearn import tree
 from sklearn.externals.six import StringIO
 from sklearn.externals import joblib
@@ -240,7 +241,6 @@ def slidingWindowWeather(CD, PD, days):
         predicted[i] = predicted[i] + V
     return predicted
 if __name__ == "__main__":
-    beginProgram = time.time()
     times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_miami.csv', weatherParams)
     times2, forecasts2, weatherDataLoc2 = readCSVFile('./input/weather_data_miami_beach.csv', weatherParams)
     times3, forecasts3, weatherDataLoc3 = readCSVFile('./input/weather_data_miami_hollywood.csv', weatherParams)

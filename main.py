@@ -301,10 +301,10 @@ def runModel(city1, city2, city3, lat1, long1, lat2, long2, lat3, long3, weather
                     weatherDataLoc1[dateIndex][6], 
                     weatherDataLoc1[dateIndex][2], 
                     weatherDataLoc1[dateIndex][4],
-                    weatherDataLoc2[dateIndex][5], 
-                    weatherDataLoc2[dateIndex][6], 
-                    weatherDataLoc2[dateIndex][2], 
-                    weatherDataLoc2[dateIndex][4]))
+                    weatherDataLoc3[dateIndex][5], 
+                    weatherDataLoc3[dateIndex][6], 
+                    weatherDataLoc3[dateIndex][2], 
+                    weatherDataLoc3[dateIndex][4]))
     t3 = Thread(slidingWindowModel(q, currentDate, times, weatherDataLoc1))
     t1.start()
     t2.start()
@@ -341,10 +341,10 @@ def runModel(city1, city2, city3, lat1, long1, lat2, long2, lat3, long3, weather
                         weatherDataLoc1[dateIndex][6], 
                         weatherDataLoc1[dateIndex][2], 
                         weatherDataLoc1[dateIndex][4],
-                        weatherDataLoc2[dateIndex][5], 
-                        weatherDataLoc2[dateIndex][6], 
-                        weatherDataLoc2[dateIndex][2], 
-                        weatherDataLoc2[dateIndex][4]))
+                        weatherDataLoc3[dateIndex][5], 
+                        weatherDataLoc3[dateIndex][6], 
+                        weatherDataLoc3[dateIndex][2], 
+                        weatherDataLoc3[dateIndex][4]))
         t3 = Thread(slidingWindowModel(q, currentDate, times, weatherDataLoc1))
         t1.start()
         t2.start()

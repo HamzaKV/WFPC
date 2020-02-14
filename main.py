@@ -406,5 +406,5 @@ if __name__ == '__main__':
 
     #calculate program time
     endProgram = time.perf_counter()
-    print('Program in single takes: ' + str((endProgram-beginProgram)/10) + ' seconds')
+    print('Program in parallel takes: ' + str((endProgram-beginProgram)/10) + ' seconds')
 

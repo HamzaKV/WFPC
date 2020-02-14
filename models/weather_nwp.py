@@ -143,9 +143,9 @@ tempForecasted = temperature1 + (dTdt * (time2 - time1))
 uForecasted = uForecasted / 0.00062137 #metres per second to miles per second
 vForecasted = vForecasted / 0.00062137 #metres per second to miles per second
 windSpeedFuture1 = (math.sqrt(math.pow(uForecasted, 2) + math.pow(vForecasted, 2))) * 3600
+windBearingFuture1 = math.degrees(math.atan(abs(vForecasted)/abs(uForecasted)))
 temperatureFuture1 = (tempForecasted * 9 / 5) - 459.67
 
 #results
-print(4.92, 68.39)
-print(windSpeedFuture1, temperatureFuture1)
+print(windSpeedFuture1, windBearingFuture1, temperatureFuture1)
 #error = abs(experimental - actual)/actual * 100

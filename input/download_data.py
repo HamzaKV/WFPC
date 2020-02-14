@@ -3,8 +3,7 @@ import time
 import requests
 import csv
 
-date = datetime(1999,12,31)
-timestamp = int(datetime.timestamp(date)) #Keep adding 86400 to increment by day
+timestamp = int(datetime.timestamp(datetime(1999,12,31))) #Keep adding 86400 to increment by day
 timestampE = int(datetime.timestamp(datetime(2018,12,31)))
 i = 1
 j = 1
@@ -16,7 +15,7 @@ COST = 995
 APIKEY = ''
 with open('api') as api_file:
     APIKEY = api_file.readline()
-
+net_tries = 0
 wait_icon = "|"
 
 while True:
@@ -50,7 +49,7 @@ while True:
         else:
             continue
     #Dump data in csv file
-    with open('weather_data_miami_beach.csv', 'a') as csvFile:
+    with open('weather_data_miami_beach.csv', 'a', , newline='') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(values)
     csvFile.close()

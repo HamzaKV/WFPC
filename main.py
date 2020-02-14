@@ -312,6 +312,7 @@ if __name__ == "__main__":
         swForcast = clf.predict([slidingWindowPrediction])
         predictionsSW.append(str(currentDate) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
     #show output
+    print('Miami')
     for a in predictionsSW:
         print(a)
     #make output files

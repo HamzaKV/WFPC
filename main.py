@@ -9,7 +9,7 @@ import csv
 import math
 import numpy
 import queue
-from multiprocessing import Process, Pipe
+from multiprocessing import Process
 from threading import Thread
 
 # declare vars
@@ -256,13 +256,12 @@ def slidingWindowModel(mainQueue, currentDate, times, weatherDataLoc):
     slidingWindowPrediction =  slidingWindowWeather(CD, PD, 7)
     mainQueue.put(slidingWindowPrediction)
 
-if __name__ == '__main__':
-    beginProgram = time.perf_counter()
+def runModel(city1, city2, city3, lat1, long1, lat2, long2, lat3, long3, weatherParams):
     predictions = []
     q = queue.Queue()
-    t1 = Thread(getData(q, './input/weather_data_miami.csv', weatherParams.copy()))
-    t2 = Thread(getData(q, './input/weather_data_miami_beach.csv', weatherParams.copy()))
-    t3 = Thread(getData(q, './input/weather_data_miami_hollywood.csv', weatherParams.copy()))
+    t1 = Thread(getData(q, './input/weather_data_'+city1+'.csv', weatherParams))
+    t2 = Thread(getData(q, './input/weather_data_'+city2+'.csv', weatherParams))
+    t3 = Thread(getData(q, './input/weather_data_'+city3+'.csv', weatherParams))
     t1.start()
     t2.start()
     t3.start()
@@ -285,8 +284,8 @@ if __name__ == '__main__':
     currentDate = startDate
     dateIndex = times.index(currentDate)
     t1 = Thread(nwpModel(q, currentDate, 
-                    25.761681, -80.191788, 
-                    25.8103146, -80.1751609,
+                    lat1, long1, 
+                    lat2, long2,
                     weatherDataLoc1[dateIndex][5], 
                     weatherDataLoc1[dateIndex][6], 
                     weatherDataLoc1[dateIndex][2], 
@@ -296,8 +295,8 @@ if __name__ == '__main__':
                     weatherDataLoc2[dateIndex][2], 
                     weatherDataLoc2[dateIndex][4]))
     t2 = Thread(nwpModel(q, currentDate, 
-                    25.761681, -80.191788, 
-                    25.8103146, -80.1751609,
+                    lat1, long1, 
+                    lat3, long3,
                     weatherDataLoc1[dateIndex][5], 
                     weatherDataLoc1[dateIndex][6], 
                     weatherDataLoc1[dateIndex][2], 
@@ -324,9 +323,9 @@ if __name__ == '__main__':
     predictions.append([str(currentDate) + ',' + predictedForecast[0] + ',' + ','.join(map(str, sw))])
     while currentDate < endDate:
         dateIndex = times.index(currentDate)
-        t1 = Thread(nwpModel(q, currentDate, 
-                        25.761681, -80.191788, 
-                        25.8103146, -80.1751609,
+        t1 = Thread(nwpModel(q, currentDate,  
+                        lat1, long1, 
+                        lat2, long2,
                         weatherDataLoc1[dateIndex][5], 
                         weatherDataLoc1[dateIndex][6], 
                         weatherDataLoc1[dateIndex][2], 
@@ -336,8 +335,8 @@ if __name__ == '__main__':
                         weatherDataLoc2[dateIndex][2], 
                         weatherDataLoc2[dateIndex][4]))
         t2 = Thread(nwpModel(q, currentDate, 
-                        25.761681, -80.191788, 
-                        25.8103146, -80.1751609,
+                        lat1, long1, 
+                        lat3, long3,
                         weatherDataLoc1[dateIndex][5], 
                         weatherDataLoc1[dateIndex][6], 
                         weatherDataLoc1[dateIndex][2], 
@@ -360,9 +359,52 @@ if __name__ == '__main__':
         predictedForecast = machineLearning.predict([sw])
         currentDate = currentDate + (24 * 3600)
         predictions.append([str(currentDate) + ',' + predictedForecast[0] + ',' + ','.join(map(str, sw))])
+    print(city1)
+    for a in predictions:
+        print(a)
+
+if __name__ == '__main__':
+    beginProgram = time.perf_counter()
+    cities = {
+        0:{'city': 'miami', 'latitude': 25.761681, 'longitude': -80.191788, 'l1': 12, 'l2': 13},
+        1:{'city': 'BelleGlade', 'latitude': 26.6839, 'longitude': -80.673, 'l1': 9, 'l2': 11},
+        2:{'city': 'BonitaSprings', 'latitude': 26.32, 'longitude': -81.81, 'l1': 3, 'l2': 6},
+        3:{'city': 'CapeCoral', 'latitude': 26.63, 'longitude': -81.85, 'l1': 8, 'l2': 2},
+        4:{'city': 'Goodland', 'latitude': 25.92, 'longitude': -81.65, 'l1': 2, 'l2': 10},
+        5:{'city': 'HomesteadAirReserveBase', 'latitude': 25.49, 'longitude': -80.37, 'l1': 0, 'l2': 10},
+        6:{'city': 'Immokalee', 'latitude': 26.53, 'longitude': -81.77, 'l1': 2, 'l2': 8},
+        7:{'city': 'KingsPoint', 'latitude': 26.44, 'longitude': -80.13, 'l1': 13, 'l2': 11},
+        8:{'city': 'LehighAcres', 'latitude': 26.61, 'longitude': -81.65, 'l1': 3, 'l2': 6},
+        9:{'city': 'LibertyPoint', 'latitude': 26.68, 'longitude': -80.67, 'l1': 8, 'l2': 1},
+        10:{'city': 'Turkeyfoot', 'latitude': 26.09, 'longitude': -81.27, 'l1': 4, 'l2': 13},
+        11:{'city': 'WestPalmBeach', 'latitude': 26.69, 'longitude': -80.1, 'l1': 7, 'l2': 1},
+        12:{'city': 'miami_beach', 'latitude': 25.8103146, 'longitude': -80.1751609, 'l1': -1, 'l2': -1},
+        13:{'city': 'miami_hollywood', 'latitude': 26.0331192, 'longitude': -80.1774954, 'l1': -1, 'l2': -1},
+    }
+    processes = []
+    for k in range(len(cities)-2):
+        p = Process(
+            target=runModel, 
+            args=[
+                cities[k]['city'], 
+                cities[cities[k]['l1']]['city'], 
+                cities[cities[k]['l2']]['city'], 
+                cities[k]['latitude'], 
+                cities[k]['longitude'],
+                cities[cities[k]['l1']]['latitude'], 
+                cities[cities[k]['l1']]['longitude'], 
+                cities[cities[k]['l2']]['latitude'], 
+                cities[cities[k]['l2']]['longitude'],
+                weatherParams 
+            ]
+        )
+        p.start()
+        processes.append(p)
+    
+    for process in processes:
+        process.join()
+
     #calculate program time
     endProgram = time.perf_counter()
     print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')
-    for a in predictions:
-        print(a)
 

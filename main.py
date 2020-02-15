@@ -122,12 +122,6 @@ def nwpModel(mainQueue, time1,
                     latitude1, longitude1, windSpeed1, windBearing1, temperature1, pressure1, 
                     latitude2, longitude2, windSpeed2, windBearing2, temperature2, pressure2):
     time2 = time1+(24 * 3600)
-    # nwpCalcLoc = calculateNWP(
-    #             currentDate, currentDate+(24 * 3600), 
-    #             lat1, long1, wD1L1, wD2L1, wD3L1, wD4L1,
-    #             lat2, long2, wD1L2, wD2L2, wD3L2, wD4L2)
-    # mainQueue.put(nwpCalcLoc)
-    #variables for forecasting
     windSpeedFuture1 = 0
     temperatureFuture1 = 0
     

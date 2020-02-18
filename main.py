@@ -263,9 +263,10 @@ def runModel(city, lat1, long1, lat2, long2, lat3, long3, d1, d2, d3):
     q = queue.Queue()
     t0 = Thread(mlTrain(q, weatherDataLoc1, forecasts))
     t0.start()
-    #run for 7 days
+    #run for 7 days including current
     currentDate = startDate
     dateIndex = times.index(currentDate)
+    predictions.append([str(currentDate) + ',' + forecasts[dateIndex] + ',' + ','.join(map(str, weatherDataLoc1[dateIndex]))])
     t1 = Thread(nwpModel(q, currentDate, 
                     lat1, long1, 
                     lat2, long2,

@@ -12,13 +12,13 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         querys = parsed_path.query.split('&')
         dataQuery = querys[0].split('=')
         dateQuery = querys[1].split('=')
-        data = None
+        data1 = None
         date = None
         if dataQuery[0] == 'data':
-            data = dataQuery[1]
+            data1 = dataQuery[1]
         if dateQuery[0] == 'date':
             date = dateQuery[1]
-        if data == 'fetch' and not(date is None):
+        if data1 == 'fetch' and not(date is None):
             data = {}
             r = WeatherApp(['precipIntensity', 'precipProbability', 'temperature', 'humidity', 'pressure', 'windSpeed', 'windBearing']).run(int(date))
             data['method'] = 'GET'
@@ -43,7 +43,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(data).encode())
 
 if __name__ == '__main__':
-    with HTTPServer(('localhost', 8000), SimpleHTTPRequestHandler) as httpd:
+    with HTTPServer(('192.168.0.80', 8000), SimpleHTTPRequestHandler) as httpd:
         print('Server started...')
         httpd.serve_forever()
 

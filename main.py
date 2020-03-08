@@ -260,7 +260,10 @@ if __name__ == "__main__":
         12:{'city': 'miami_beach', 'latitude': 25.8103146, 'longitude': -80.1751609, 'l1': -1, 'l2': -1},
         13:{'city': 'miami_hollywood', 'latitude': 26.0331192, 'longitude': -80.1774954, 'l1': -1, 'l2': -1},
     }
-    for k in range(len(cities)-2):
+    # for k in range(len(cities)-2):
+    k = 0
+    runs = 1
+    while runs < len(cities)-1:
         times1, forecasts1, weatherDataLoc1 = readCSVFile('./input/weather_data_'+ cities[k]['city'] +'.csv', weatherParams)
         times2, forecasts2, weatherDataLoc2 = readCSVFile('./input/weather_data_'+ cities[cities[k]['l1']]['city'] +'.csv', weatherParams)
         times3, forecasts3, weatherDataLoc3 = readCSVFile('./input/weather_data_'+ cities[cities[k]['l2']]['city'] +'.csv', weatherParams)
@@ -331,12 +334,19 @@ if __name__ == "__main__":
             swForcast = clf.predict([slidingWindowPrediction])
             predictionsSW.append(str(currentDate) + ',' + swForcast[0] + ',' + ','.join(map(str, slidingWindowPrediction)))
         #show output
-        print(cities[k]['city'])
-        for a in predictionsSW:
-            print(a)
+        # print(cities[k]['city'])
+        # for a in predictionsSW:
+            # print(a)
+        k = k + 1
+        if k == runs:
+            endProgram = time.perf_counter()
+            print('Program for ' + str(runs) + ' cities in single takes: ' + str(endProgram-beginProgram) + ' seconds')
+            k = 0
+            runs = runs + 1
+            beginProgram = time.perf_counter()
     #make output files
     # writeCSV('./output/weather_nwp_miami.csv', predictionsNWP)
     # writeCSV('./output/weather_sw_miami.csv', predictionsSW)
     #calculate program time
-    endProgram = time.perf_counter()
-    print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')
+    # endProgram = time.perf_counter()
+    # print('Program in single takes: ' + str(endProgram-beginProgram) + ' seconds')

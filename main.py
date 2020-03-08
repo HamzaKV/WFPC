@@ -9,8 +9,9 @@ import csv
 import math
 import numpy
 import queue
-from multiprocessing import Process
+# from multiprocessing import Process
 from threading import Thread
+import concurrent.futures
 
 # declare vars
 weatherParams = ['precipIntensity', 'precipProbability', 'temperature', 'humidity', 'pressure', 'windSpeed', 'windBearing']
@@ -376,28 +377,44 @@ if __name__ == '__main__':
         thread.join()
         datas.append(q.get())
     
-    processes = []
-    for k in range(len(cities)-2):
-        p = Process(
-            target=runModel, 
-            args=[
-                cities[k]['city'], 
-                cities[k]['latitude'], 
-                cities[k]['longitude'],
-                cities[cities[k]['l1']]['latitude'], 
-                cities[cities[k]['l1']]['longitude'], 
-                cities[cities[k]['l2']]['latitude'], 
-                cities[cities[k]['l2']]['longitude'],
-                datas[k],
-                datas[cities[k]['l1']],
-                datas[cities[k]['l2']]
-            ]
-        )
-        p.start()
-        processes.append(p)
+    results_arr = []
+    with concurrent.futures.ProcessPoolExecutor() as executer:
+        results = [executer.submit(
+            runModel,
+            cities[k]['city'], 
+            cities[k]['latitude'], 
+            cities[k]['longitude'],
+            cities[cities[k]['l1']]['latitude'], 
+            cities[cities[k]['l1']]['longitude'], 
+            cities[cities[k]['l2']]['latitude'], 
+            cities[cities[k]['l2']]['longitude'],
+            datas[k],
+            datas[cities[k]['l1']],
+            datas[cities[k]['l2']]
+        ) for k in range(len(cities)-2)]
+
+    # processes = []
+    # for k in range(len(cities)-2):
+    #     p = Process(
+    #         target=runModel, 
+    #         args=[
+    #             cities[k]['city'], 
+    #             cities[k]['latitude'], 
+    #             cities[k]['longitude'],
+    #             cities[cities[k]['l1']]['latitude'], 
+    #             cities[cities[k]['l1']]['longitude'], 
+    #             cities[cities[k]['l2']]['latitude'], 
+    #             cities[cities[k]['l2']]['longitude'],
+    #             datas[k],
+    #             datas[cities[k]['l1']],
+    #             datas[cities[k]['l2']]
+    #         ]
+    #     )
+    #     p.start()
+    #     processes.append(p)
     
-    for process in processes:
-        process.join()
+    # for process in processes:
+    #     process.join()
 
     #calculate program time
     endProgram = time.perf_counter()

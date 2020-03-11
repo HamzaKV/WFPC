@@ -91,7 +91,7 @@ def slidingWindowWeather(CD, PD, days):
         predicted[i] = predicted[i] + V
     return predicted
 
-def getData(filename, wtParams):
+def getData(mainQueue, filename, wtParams):
     times = []
     forecasts = []
     weatherData = []
@@ -112,7 +112,7 @@ def getData(filename, wtParams):
                     tmp.append(float(row[i]))
                 weatherData.append(tmp)
             line = line + 1
-    # mainQueue.put([times, forecasts, weatherData])
+    mainQueue.put([times, forecasts, weatherData])
 
 def mlTrain(mainQueue, weatherDataLoc, forecasts):
     clf = tree.DecisionTreeClassifier()
@@ -367,27 +367,16 @@ if __name__ == '__main__':
         13:{'city': 'miami_hollywood', 'latitude': 26.0331192, 'longitude': -80.1774954, 'l1': -1, 'l2': -1},
     }
 
+    q = queue.Queue()
+    threads = []
     datas = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = [executor.submit(
-            getData,
-            './input/weather_data_'+cities[k]['city']+'.csv', 
-            weatherParams
-        ) for k in range(len(cities))]
-
-        for f in concurrent.futures.as_completed(results):
-            datas.append(f.result())
-
-    # q = queue.Queue()
-    # threads = []
-    # datas = []
-    # for k in range(len(cities)):
-    #     t = Thread(getData(q, './input/weather_data_'+cities[k]['city']+'.csv', weatherParams)) 
-    #     t.start()
-    #     threads.append(t)
-    # for thread in threads:
-    #     thread.join()
-    #     datas.append(q.get())
+    for k in range(len(cities)):
+        t = Thread(getData(q, './input/weather_data_'+cities[k]['city']+'.csv', weatherParams)) 
+        t.start()
+        threads.append(t)
+    for thread in threads:
+        thread.join()
+        datas.append(q.get())
     
     results_arr = []
     with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -404,29 +393,6 @@ if __name__ == '__main__':
             datas[cities[k]['l1']],
             datas[cities[k]['l2']]
         ) for k in range(len(cities)-2)]
-
-    # processes = []
-    # for k in range(len(cities)-2):
-    #     p = Process(
-    #         target=runModel, 
-    #         args=[
-    #             cities[k]['city'], 
-    #             cities[k]['latitude'], 
-    #             cities[k]['longitude'],
-    #             cities[cities[k]['l1']]['latitude'], 
-    #             cities[cities[k]['l1']]['longitude'], 
-    #             cities[cities[k]['l2']]['latitude'], 
-    #             cities[cities[k]['l2']]['longitude'],
-    #             datas[k],
-    #             datas[cities[k]['l1']],
-    #             datas[cities[k]['l2']]
-    #         ]
-    #     )
-    #     p.start()
-    #     processes.append(p)
-    
-    # for process in processes:
-    #     process.join()
 
     #calculate program time
     endProgram = time.perf_counter()

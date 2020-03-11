@@ -91,7 +91,7 @@ def slidingWindowWeather(CD, PD, days):
         predicted[i] = predicted[i] + V
     return predicted
 
-def getData(mainQueue, filename, wtParams):
+def getData(filename, wtParams):
     times = []
     forecasts = []
     weatherData = []
@@ -112,7 +112,7 @@ def getData(mainQueue, filename, wtParams):
                     tmp.append(float(row[i]))
                 weatherData.append(tmp)
             line = line + 1
-    mainQueue.put([times, forecasts, weatherData])
+    # mainQueue.put([times, forecasts, weatherData])
 
 def mlTrain(mainQueue, weatherDataLoc, forecasts):
     clf = tree.DecisionTreeClassifier()
@@ -366,20 +366,32 @@ if __name__ == '__main__':
         12:{'city': 'miami_beach', 'latitude': 25.8103146, 'longitude': -80.1751609, 'l1': -1, 'l2': -1},
         13:{'city': 'miami_hollywood', 'latitude': 26.0331192, 'longitude': -80.1774954, 'l1': -1, 'l2': -1},
     }
-    q = queue.Queue()
-    threads = []
+
     datas = []
-    for k in range(len(cities)):
-        t = Thread(getData(q, './input/weather_data_'+cities[k]['city']+'.csv', weatherParams)) 
-        t.start()
-        threads.append(t)
-    for thread in threads:
-        thread.join()
-        datas.append(q.get())
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = [executor.submit(
+            getData,
+            './input/weather_data_'+cities[k]['city']+'.csv', 
+            weatherParams
+        ) for k in range(len(cities))]
+
+        for f in concurrent.futures.as_completed(results):
+            datas.append(f.result())
+
+    # q = queue.Queue()
+    # threads = []
+    # datas = []
+    # for k in range(len(cities)):
+    #     t = Thread(getData(q, './input/weather_data_'+cities[k]['city']+'.csv', weatherParams)) 
+    #     t.start()
+    #     threads.append(t)
+    # for thread in threads:
+    #     thread.join()
+    #     datas.append(q.get())
     
     results_arr = []
-    with concurrent.futures.ProcessPoolExecutor() as executer:
-        results = [executer.submit(
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = [executor.submit(
             runModel,
             cities[k]['city'], 
             cities[k]['latitude'], 

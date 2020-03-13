@@ -379,7 +379,7 @@ if __name__ == '__main__':
         datas.append(q.get())
     
     results_arr = []
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=7) as executor:
         results = [executor.submit(
             runModel,
             cities[k]['city'], 
